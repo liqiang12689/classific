@@ -45,13 +45,14 @@ img = img*std + mean
 print([classes[i] for i in y_train])
 plt.imshow(img)
 
-model = models.vgg16(pretrained = False)
+model = models.alexnet(pretrained = False)
 print(model)
 
 for parma in model.parameters():
     parma.requires_grad = False
 
-model.classifier = torch.nn.Sequential(torch.nn.Linear(25088, 4096),
+model.classifier = torch.nn.Sequential(torch.nn.Dropout(p=0.5, inplace=False),
+                                       torch.nn.Linear(9621, 4096),
                                        torch.nn.ReLU(),
                                        torch.nn.Dropout(p=0.5),
                                        torch.nn.Linear(4096, 4096),
