@@ -5,7 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
+<<<<<<< HEAD
             "name": "Python: Current File",
+=======
+            "name": "Python: 当前文件",
+>>>>>>> 98578e98d0e36b6b4c8f17fee60f7a27f90b61f7
             "type": "python",
             "request": "launch",
             "program": "${file}",
