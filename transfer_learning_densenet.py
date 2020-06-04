@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from torch.autograd import Variable 
 import time
 
-path = "F:/"
+path = "/home/lq/picdata/catvsdog"
 transform = transforms.Compose([transforms.CenterCrop(224),
                                 transforms.ToTensor(),
                                 transforms.Normalize([0.5,0.5,0.5], [0.5,0.5,0.5])])
@@ -45,20 +45,13 @@ img = img*std + mean
 print([classes[i] for i in y_train])
 plt.imshow(img)
 
-model = models.densenet121(pretrained = False)
+model = models.densenet121(pretrained = True)
 print(model)
 
 for parma in model.parameters():
     parma.requires_grad = False
 
-model.classifier = torch.nn.Sequential(torch.nn.Dropout(p=0.5, inplace=False),
-                                       torch.nn.Linear(9621, 4096),
-                                       torch.nn.ReLU(),
-                                       torch.nn.Dropout(p=0.5),
-                                       torch.nn.Linear(4096, 4096),
-                                       torch.nn.ReLU(),
-                                       torch.nn.Dropout(p=0.5),
-                                       torch.nn.Linear(4096, 2))
+model.classifier = torch.nn.Sequential(torch.nn.Linear(1024, 2))
 
 for index, parma in enumerate(model.classifier.parameters()):
     if index == 6:
@@ -91,7 +84,7 @@ for epoch in range(n_epochs):
             batch += 1
             X,y = data
             if use_gpu:
-                X,y - Variable(X.cuda()), Variable(y.cuda())
+                X,y = Variable(X.cuda()), Variable(y.cuda())
             else:
                 X,y = Variable(X), Variable(y)
             
@@ -109,7 +102,7 @@ for epoch in range(n_epochs):
             if batch%5 == 0 and param == "train":
                 print("Batch {}, Train Loss:{:.4f}, Train ACC:{:.4f}".format(
                 batch, running_loss/(4*batch), 100*running_correct/(4*batch)))
-            if batch == 100:
+            if batch == 1000:
                 break
         epoch_loss = running_loss/len(data_image[param])
         epoch_correct = 100*running_correct/len(data_image[param])
@@ -118,13 +111,16 @@ for epoch in range(n_epochs):
     now_time = time.time() - since
     print("Training time is:{:.0f}m {:.0f}s".format(now_time//60, now_time%60))
 
-data_test_img = datasets.ImageFolder(root="F:/val", transform = transform)
+data_test_img = datasets.ImageFolder(root="/home/lq/picdata/catvsdog/test", transform = transform)
 data_loader_test_img = torch.utils.data.DataLoader(dataset=data_test_img,
-                                                  batch_size = 16)
+                                                  batch_size = 40)
 
 
 image, label = next(iter(data_loader_test_img))
-images = Variable(image)
+if use_gpu:
+    images = Variable(image.cuda())
+else:
+    images = Variable(image)
 y_pred = model(images)
 _,pred = torch.max(y_pred.data, 1)
 print(pred)
@@ -136,4 +132,4 @@ std = [0.5, 0.5, 0.5]
 img = img * std + mean
 print("Pred Label:", [classes[i] for i in pred])
 plt.imshow(img)
-plt.imsave('./new_img_rgb.png',img)
+plt.imsave('./new_img_rgb_densenet.png',img)
